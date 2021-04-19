@@ -1,4 +1,5 @@
 library(sqldf)
+library(lubridate)
 
 if(!file.exists("./data")){dir.create("./data")}
 download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip",destfile = "./data/raw_data.zip",method = "curl")
@@ -23,11 +24,29 @@ df[df == "?"] <- NA
 # Remove incomplete observation
 df=df[complete.cases(df), ]
 
-# Set new Graphic Device as PNG
-png(filename="plot1.png", width=480, height=480)
+# Combine Date & Time column as DateTime and store in POSIXct format
+df$DateTime <-dmy_hms(paste(df$Date,df$Time))
 
-# Histogram
-hist(df$Global_active_power, col = "red", xlab = "Global Active Power (kilowatts)", main = "Global Active Power")
+# Remove Date and Time column
+df <- df[ ,!(names(df) %in% c("Date","Time"))]
+
+# Set new Graphic Device as PNG
+png(filename="plot3.png", width=480, height=480)
+
+# Blank Plot 
+plot(df$Sub_metering_1~df$DateTime, type = "n", ylab="Energy sub metering", xlab="")
+
+# Sub metering 1
+points(df$Sub_metering_1~df$DateTime, type = "l", col= 'black')
+
+# Sub metering 2
+points(df$Sub_metering_2~df$DateTime, type = "l", col= 'red')
+
+# Sub metering 3
+points(df$Sub_metering_3~df$DateTime, type = "l", col= 'blue')
+
+# Legend
+legend("topright",col = c('black','red','blue'),lwd=c(1,1,1),legend = c("Sub_metering_1","Sub_metering_2","Sub_metering_3"))
 
 # Close Device
 dev.off()
